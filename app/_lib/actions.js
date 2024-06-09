@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache"
 import { auth, signIn, signOut } from "./auth"
 import supabase from "./supabase"
-import { getBooking, getBookings, getSettings } from "./data-service"
+import { getBookedDatesByCabinId, getBooking, getBookings, getCabin, getSettings } from "./data-service"
 import { redirect } from "next/navigation"
+import { isAlreadyBooked } from "./helpers"
 
 export async function signInAction() {
   await signIn("google", { redirectTo: "/account" })
@@ -54,8 +55,17 @@ export async function createReservation(bookingData, formData) {
   const settings = await getSettings()
   const { breakfastPrice } = settings
 
-  const { cabinId, numNights, cabinPrice } = bookingData
+  const { cabinId, numNights, cabinPrice, startDate, endDate } = bookingData
+  const cabin = await getCabin(cabinId)
+  const { maxCapacity } = cabin
+  const bookedDates = await getBookedDatesByCabinId(cabinId)
+  const range = { from: startDate, to: endDate }
+
+  if (isAlreadyBooked(range, bookedDates)) throw new Error("Dates already booked, do not tamper with html elements, we got that covered ;)")
+
   const numGuests = Number(formData.get("numGuests"))
+
+  if (numGuests > maxCapacity) throw new Error("The number of guests can not surpass ma capacity. Do not tamper with html elements.")
 
   const hasBreakfast = formData.get("hasBreakfast") === "on"
   const extrasPrice = hasBreakfast ? numGuests * numNights * breakfastPrice : 0
@@ -71,8 +81,6 @@ export async function createReservation(bookingData, formData) {
     numGuests,
     observations: formData.get("observations").slice(0, 1000)
   }
-
-  console.log(newBooking)
 
   const { data, error } = await supabase
     .from("bookings")
@@ -100,10 +108,14 @@ export async function updateReservation(formData) {
   if (!guestBookingsIds.includes(bookingId)) throw new Error("Unauthorized action")
 
   const booking = await getBooking(bookingId)
-  const { hasBreakfast, numNights, cabinPrice } = booking
+  const { numNights, cabinPrice } = booking
 
   const settings = await getSettings()
   const { breakfastPrice } = settings
+
+  console.log(formData)
+
+  const hasBreakfast = formData.get("hasBreakfast") === "on"
 
   const numGuests = Number(formData.get("numGuests"))
   const extrasPrice = hasBreakfast ? numGuests * numNights * breakfastPrice : 0
@@ -113,6 +125,7 @@ export async function updateReservation(formData) {
     numGuests,
     extrasPrice,
     totalPrice,
+    hasBreakfast,
     observations: formData.get("observations").slice(0, 1000)
   }
 

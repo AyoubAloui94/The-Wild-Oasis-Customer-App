@@ -6,7 +6,7 @@ import { createReservation } from "../_lib/actions"
 import SubmitButton from "./SubmitButton"
 
 function ReservationForm({ cabin, user }) {
-  const { range, resetRange } = useReservation()
+  const { range, resetRange, hasBreakfast, setHasBreakfast, setNumGuests, numGuests } = useReservation()
   const { id: cabinId, maxCapacity, regularPrice, discount } = cabin
 
   const startDate = range?.from
@@ -46,12 +46,14 @@ function ReservationForm({ cabin, user }) {
         action={async formData => {
           await createReservationBound(formData)
           resetRange()
+          setHasBreakfast(false)
+          setNumGuests(0)
         }}
         className="bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col"
       >
         <div className="space-y-2">
           <label htmlFor="numGuests">How many guests?</label>
-          <select name="numGuests" id="numGuests" className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm" required>
+          <select name="numGuests" id="numGuests" className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm" required value={numGuests} onChange={e => setNumGuests(Number(e.target.value))}>
             <option value="" key="">
               Select number of guests...
             </option>
@@ -69,7 +71,7 @@ function ReservationForm({ cabin, user }) {
         </div>
 
         <div className="flex gap-3 items-center">
-          <input type="checkbox" name="hasBreakfast" />
+          <input type="checkbox" name="hasBreakfast" defaultChecked={hasBreakfast} onChange={() => setHasBreakfast(!hasBreakfast)} />
           <span>Want breakfast? (15$ per guest per day )</span>
         </div>
 

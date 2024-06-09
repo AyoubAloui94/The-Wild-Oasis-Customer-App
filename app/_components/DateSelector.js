@@ -1,32 +1,31 @@
 "use client"
 
-import { differenceInDays, isPast, isSameDay, isWithinInterval } from "date-fns"
+import { differenceInDays, isPast, isSameDay } from "date-fns"
 import { DayPicker } from "react-day-picker"
 import "react-day-picker/dist/style.css"
 import { useReservation } from "./ReservationContext"
-
-function isAlreadyBooked(range, datesArr) {
-  return range?.from && range?.to && datesArr.some(date => isWithinInterval(date, { start: range?.from, end: range?.to }))
-}
+import { isAlreadyBooked } from "../_lib/helpers"
 
 function DateSelector({ cabin, settings, bookedDates }) {
-  const { regularPrice, discount } = cabin
-  const { range, setRange, resetRange } = useReservation()
+  const { regularPrice, discount, maxCapacity } = cabin
+  const { range, setRange, resetRange, hasBreakfast, numGuests } = useReservation()
 
   const displayRange = isAlreadyBooked(range, bookedDates) ? {} : range
 
-  const numNights = differenceInDays(displayRange?.to, displayRange?.from)
-  const cabinPrice = numNights * (regularPrice - discount)
+  let extrasPrice = 0
+  const { minBookingLength, maxBookingLength, breakfastPrice } = settings
 
-  // SETTINGS
-  const { minBookingLength, maxBookingLength } = settings
+  const numNights = differenceInDays(displayRange?.to, displayRange?.from)
+  if (hasBreakfast && numGuests) extrasPrice = numGuests * numNights * breakfastPrice
+  const cabinPrice = numNights * (regularPrice - discount)
+  const totalPrice = numGuests <= maxCapacity ? cabinPrice + extrasPrice : cabinPrice
 
   return (
     <div className="flex flex-col justify-between">
       <DayPicker className="pt-12 place-self-center" mode="range" min={minBookingLength + 1} max={maxBookingLength} fromMonth={new Date()} fromDate={new Date()} toYear={new Date().getFullYear() + 5} captionLayout="dropdown" numberOfMonths={2} disabled={curDate => isPast(curDate) || bookedDates.some(date => isSameDay(date, curDate))} onSelect={range => setRange(range)} selected={displayRange} />
 
       <div className="flex items-center justify-between px-8 bg-accent-500 text-primary-800 h-[72px]">
-        <div className="flex items-baseline gap-6">
+        <div className="flex items-center gap-6">
           <p className="flex gap-2 items-baseline">
             {discount > 0 ? (
               <>
@@ -43,9 +42,16 @@ function DateSelector({ cabin, settings, bookedDates }) {
               <p className="bg-accent-600 px-3 py-2 text-2xl">
                 <span>&times;</span> <span>{numNights}</span>
               </p>
-              <p>
-                <span className="text-lg font-bold uppercase">Total</span> <span className="text-2xl font-semibold">${cabinPrice}</span>
-              </p>
+              <div className="flex flex-col items-center justify-center">
+                <p>
+                  <span className="text-lg font-bold uppercase">Total</span> <span className="text-2xl font-semibold">${totalPrice}</span>
+                </p>
+                {extrasPrice > 0 && numGuests <= maxCapacity ? (
+                  <p>
+                    (<span className="text-sm font-bold uppercase">Breakfast</span> <span className="text-md font-semibold">${extrasPrice}</span>)
+                  </p>
+                ) : null}
+              </div>
             </>
           ) : null}
         </div>
