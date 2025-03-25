@@ -26,7 +26,7 @@ function ReservationCard({ booking, onDelete }) {
   return (
     <div className="flex border border-primary-800">
       <div className="relative h-32 aspect-square">
-        <Image src={image} alt={`Cabin ${name}`} fill className="object-cover border-r border-primary-800" />
+        <Image src={image} alt={`Cabin ${name}`} fill sizes="600px" className="object-cover border-r border-primary-800" />
       </div>
 
       <div className="flex-grow px-6 py-3 flex flex-col">

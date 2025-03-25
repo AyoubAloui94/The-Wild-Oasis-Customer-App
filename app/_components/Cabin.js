@@ -7,7 +7,7 @@ function Cabin({ cabin }) {
   return (
     <div className="grid grid-cols-[3fr_4fr] gap-20 border border-primary-800 py-3 px-10 mb-24">
       <div className="relative scale-[1.15] -translate-x-3">
-        <Image fill src={image} alt={`Cabin ${name}`} className="object-cover" />
+        <Image fill src={image} sizes="600px" alt={`Cabin ${name}`} className="object-cover" />
       </div>
 
       <div>
