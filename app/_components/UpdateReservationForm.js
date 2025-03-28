@@ -25,7 +25,7 @@ function UpdateReservationForm({ bookingId, maxCapacity, numGuests, observations
 
       <div className="flex gap-3 items-center">
         <input type="checkbox" name="hasBreakfast" defaultChecked={hasBreakfast} />
-        <span>Want breakfast? (15$ per guest per day )</span>
+        <span>Want breakfast? ($15 per guest per day )</span>
       </div>
 
       <input name="bookingId" id="bookingId" defaultValue={bookingId} type="hidden" />
