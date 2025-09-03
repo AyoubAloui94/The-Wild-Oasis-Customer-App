@@ -8,7 +8,9 @@ const nextConfig = {
         port: "",
         pathname: "/storage/v1/object/public/cabin-images/**"
       }
-    ]
+    ],
+    formats: ["image/webp"],
+    minimumCacheTTL: 31536000 // 1 year
   }
   // output: "export"
 }
